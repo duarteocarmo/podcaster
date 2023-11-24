@@ -1,0 +1,7 @@
+MODAL_NAME = "podcaster"
+MODAL_GPU = "a10g"
+VOICE_FILE = "/root/data/duarte_conference_1min.wav"
+LOCAL_DATA_DIR = "./data"
+MODAL_REMOTE_DATA_DIR = "/root/data"
+MODEL_NAME = "tts_models/multilingual/multi-dataset/xtts_v2"
+LANGUAGE = "en"

@@ -7,7 +7,7 @@ name = "podcaster"
 version = "23.5.24"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["modal"]
+dependencies = ["modal", "feedparser", "loguru", "beautifulsoup4", "TTS"]
 
 [project.optional-dependencies]
 dev = [
@@ -20,7 +20,7 @@ dev = [
 ignore = ["E501"]
 select = ["E", "F", "I", "W"]
 line-length = 79
-fixable = ["I"]
+fixable = ["I", "E401"]
 exclude = [".env", ".venv", "venv", "notebooks"]
 show-source = true
 
