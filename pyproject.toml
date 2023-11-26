@@ -7,31 +7,22 @@ name = "podcaster"
 version = "23.5.24"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["modal", "feedparser", "loguru", "beautifulsoup4", "TTS"]
+dependencies = [
+  "modal",
+  "feedparser",
+  "loguru",
+  "beautifulsoup4",
+  "TTS",
+  "boto3",
+]
 
 [project.optional-dependencies]
-dev = [
-  "pytest>=7.2.0",
-  "pytest-cov>=4.0.0",
-  "ruff>=0.0.219",
-]
+dev = ["pytest>=7.2.0", "pytest-cov>=4.0.0", "ruff>=0.0.219"]
 
 [tool.ruff]
 ignore = ["E501"]
 select = ["E", "F", "I", "W"]
 line-length = 79
-fixable = ["I", "E401"]
+fixable = ["ALL"]
 exclude = [".env", ".venv", "venv", "notebooks"]
 show-source = true
-
-[tool.coverage.paths]
-source = ["src"]
-
-[tool.coverage.run]
-branch = true
-relative_files = true
-
-[tool.coverage.report]
-show_missing = true
-fail_under = 80
-

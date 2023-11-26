@@ -1,3 +1,4 @@
+import hashlib
 import re
 import typing as t
 from dataclasses import dataclass, field
@@ -5,7 +6,6 @@ from datetime import datetime
 
 import feedparser
 from bs4 import BeautifulSoup
-from loguru import logger
 
 
 @dataclass
@@ -18,10 +18,10 @@ class ParsedArticle:
     date: datetime = field(init=False)
     is_valid: bool = field(init=False, default=True)
     text_for_tts: str = field(init=False)
+    id: str = field(init=False)
 
     def __post_init__(self):
         if len(self.content) <= 100:
-            logger.info(f"Skipping article: {self.title}")
             self.is_valid = False
 
         if not self.title.strip().endswith("."):
@@ -30,6 +30,7 @@ class ParsedArticle:
         tts_content = prepare_text_for_tts(html_string=self.content)
         self.text_for_tts = f"Article title: {self.title}\n{tts_content}"
         self.date = datetime.fromisoformat(self.date_as_str)
+        self.id = hashlib.md5(self.link.encode()).hexdigest()
 
 
 def prepare_text_for_tts(html_string: str) -> str:
