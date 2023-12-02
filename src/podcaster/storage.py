@@ -1,10 +1,12 @@
 import typing as t
+from pathlib import Path
 
 import boto3
 from botocore.exceptions import NoCredentialsError
 from loguru import logger
 
 from podcaster.const import BUCKET_URL
+from podcaster.parser import ParsedArticle
 
 
 class S3BucketManager:
@@ -49,10 +51,9 @@ class S3BucketManager:
                 print("Credentials not available")
         return deleted_files
 
-    def filter_existing_files(self, file_names: t.List[str]) -> t.List[str]:
-        existing_files = self.list_bucket_contents()
-        return [
-            file_name
-            for file_name in file_names
-            if file_name in existing_files
-        ]
+    def get_untranscribed(
+        self, articles: t.List[ParsedArticle]
+    ) -> t.List[ParsedArticle]:
+        bucket_contents = self.list_bucket_contents()
+        transcribed_ids = [Path(f).stem for f in bucket_contents]
+        return [a for a in articles if a.id not in transcribed_ids]

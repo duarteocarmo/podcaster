@@ -4,6 +4,7 @@ import typing as t
 import modal
 import torch
 from loguru import logger
+from synchronicity.exceptions import UserCodeException
 from TTS.api import TTS
 
 from podcaster.const import (
@@ -24,6 +25,10 @@ MODAL_IMAGE = modal.Image.debian_slim().pip_install_from_pyproject(
 )
 MODAL_VOLUME = modal.NetworkFileSystem.persisted(MODAL_VOLUME_NAME)
 stub = modal.Stub(MODAL_NAME, image=MODAL_IMAGE)
+
+
+def custom_split_into_sentences(text: str) -> t.List[str]:
+    return text.split(".")
 
 
 @stub.function(
@@ -75,14 +80,20 @@ def transcribe_to_file(
         return []
 
     if remote is False:
-        for a in articles:
-            _ = transcribe.local(a)
+        article_bytes_list = [transcribe.local(a) for a in articles]
 
-    with stub.run():
-        article_bytes_list = list(transcribe.map(articles))
+    else:
+        with stub.run():
+            article_bytes_list: t.List[bytes] = list(
+                transcribe.map(articles, return_exceptions=True)
+            )
 
     file_names = []
     for a, b in zip(articles, article_bytes_list):
+        if isinstance(b, UserCodeException):
+            logger.warning(f"Could not transcribe article {a.id}")
+            continue
+
         file_name = f"{target_dir}{a.id}.wav"
         with open(file_name, "wb") as f:
             f.write(b)

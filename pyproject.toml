@@ -13,6 +13,7 @@ dependencies = [
   "loguru",
   "beautifulsoup4",
   "TTS",
+  "pydub",
   "boto3",
 ]
 
