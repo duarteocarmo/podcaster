@@ -57,3 +57,10 @@ class S3BucketManager:
         bucket_contents = self.list_bucket_contents()
         transcribed_ids = [Path(f).stem for f in bucket_contents]
         return [a for a in articles if a.id not in transcribed_ids]
+
+    def get_transcribed(
+        self, articles: t.List[ParsedArticle]
+    ) -> t.List[ParsedArticle]:
+        bucket_contents = self.list_bucket_contents()
+        transcribed_ids = [Path(f).stem for f in bucket_contents]
+        return [a for a in articles if a.id in transcribed_ids]

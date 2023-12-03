@@ -13,8 +13,9 @@ dependencies = [
   "loguru",
   "beautifulsoup4",
   "TTS",
-  "pydub",
   "boto3",
+  "feedgen",
+  "pydub",
 ]
 
 [project.optional-dependencies]

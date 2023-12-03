@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+transcripts/*
+podcast.xml
+.env_variables
+data_raw/duarte_conference_1min.wav

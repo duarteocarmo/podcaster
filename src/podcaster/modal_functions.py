@@ -4,6 +4,7 @@ import typing as t
 import modal
 import torch
 from loguru import logger
+from pydub import AudioSegment
 from synchronicity.exceptions import UserCodeException
 from TTS.api import TTS
 
@@ -20,15 +21,13 @@ from podcaster.const import (
 )
 from podcaster.parser import ParsedArticle
 
-MODAL_IMAGE = modal.Image.debian_slim().pip_install_from_pyproject(
-    "pyproject.toml"
+MODAL_IMAGE = (
+    modal.Image.debian_slim()
+    .pip_install_from_pyproject("pyproject.toml")
+    .apt_install("ffmpeg")
 )
 MODAL_VOLUME = modal.NetworkFileSystem.persisted(MODAL_VOLUME_NAME)
 stub = modal.Stub(MODAL_NAME, image=MODAL_IMAGE)
-
-
-def custom_split_into_sentences(text: str) -> t.List[str]:
-    return text.split(".")
 
 
 @stub.function(
@@ -56,6 +55,21 @@ def transcribe(
 
     tts = TTS(model_name=model_name, progress_bar=True).to(device)
 
+    def sentence_split_patcher(text: str) -> t.List[str]:
+        sentences = tts.synthesizer.seg.segment(text)
+        new_sentences = []
+        for sentence in sentences:
+            if len(sentence) < 200:
+                new_sentences.append(sentence)
+            else:
+                to_extend = sentence.split(".")
+                to_extend = [x for x in to_extend if len(x.strip()) > 0]
+                new_sentences.extend(to_extend)
+
+        return new_sentences
+
+    tts.synthesizer.split_into_sentences = sentence_split_patcher
+
     tts.tts_to_file(
         text=text_to_transcribe,
         speaker_wav=voice_file,
@@ -63,7 +77,9 @@ def transcribe(
         file_path=target_file,
     )
 
-    with open(target_file, "rb") as audio_file:
+    mp3_file = convert_to_mp3(target_file)
+
+    with open(mp3_file, "rb") as audio_file:
         audio_bytes = audio_file.read()
 
     logger.info("Transcription done.")
@@ -94,10 +110,17 @@ def transcribe_to_file(
             logger.warning(f"Could not transcribe article {a.id}")
             continue
 
-        file_name = f"{target_dir}{a.id}.wav"
+        file_name = f"{target_dir}{a.id}.mp3"
         with open(file_name, "wb") as f:
             f.write(b)
 
         file_names.append(file_name)
 
     return file_names
+
+
+def convert_to_mp3(file_path: str):
+    audio = AudioSegment.from_wav(file_path)
+    file_path.replace("wav", "mp3")
+    audio.export(file_path, format="mp3")
+    return file_path

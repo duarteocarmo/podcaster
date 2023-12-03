@@ -6,6 +6,19 @@ from datetime import datetime
 
 import feedparser
 from bs4 import BeautifulSoup
+from feedgen.feed import FeedGenerator
+from loguru import logger
+
+from podcaster.const import (
+    PODCAST_CATEGORIES,
+    PODCAST_DESCRIPTION,
+    PODCAST_FEED_NAME,
+    PODCAST_IMAGE,
+    PODCAST_NAME,
+    PODCAST_WEBSITE,
+    PUBLIC_BUCKET_URL,
+    RESULTS_DIR,
+)
 
 
 @dataclass
@@ -19,6 +32,8 @@ class ParsedArticle:
     is_valid: bool = field(init=False, default=True)
     text_for_tts: str = field(init=False)
     id: str = field(init=False)
+    number: int = field(init=False)
+    podcast_url: str = field(init=False)
 
     def __post_init__(self):
         if len(self.content) <= 100:
@@ -31,6 +46,11 @@ class ParsedArticle:
         self.text_for_tts = f"Article title: {self.title}\n{tts_content}"
         self.date = datetime.fromisoformat(self.date_as_str)
         self.id = hashlib.md5(self.link.encode()).hexdigest()
+        self.podcast_url = f"{PUBLIC_BUCKET_URL}/{RESULTS_DIR}{self.id}.mp3"
+
+    @property
+    def podcast_title(self):
+        return f"#{self.number} {self.title.removesuffix('.')}"
 
 
 def prepare_text_for_tts(html_string: str) -> str:
@@ -67,7 +87,38 @@ def get_articles(feed_url: str) -> t.List[ParsedArticle]:
         )
         for fe in feed.entries
     ]
-    articles = [a for a in articles if a.is_valid]
     articles = sorted(articles, key=lambda x: x.date, reverse=False)
 
+    for index, article in enumerate(articles):
+        article.number = index + 1
+
+    articles = [a for a in articles if a.is_valid]
+
     return articles
+
+
+def generate_podcast_feed_from(
+    articles: t.List[ParsedArticle], podcast_feed_name: str = PODCAST_FEED_NAME
+):
+    fg = FeedGenerator()
+    fg.load_extension("podcast")
+
+    fg.podcast.itunes_category(*PODCAST_CATEGORIES)
+    fg.title(PODCAST_NAME)
+    fg.description(PODCAST_DESCRIPTION)
+    fg.link(href=PODCAST_WEBSITE)
+    fg.logo(PODCAST_IMAGE)
+
+    for article in articles:
+        fe = fg.add_entry()
+        fe.id(article.podcast_url)
+        fe.title(article.podcast_title)
+        fe.link(href=article.link)
+        fe.description(article.summary)
+        fe.enclosure(article.podcast_url, 0, "audio/mpeg")
+        fe.published(article.date)
+
+    fg.rss_file(podcast_feed_name)
+    logger.info(f"Generated podcast feed with {len(articles)} articles")
+
+    return podcast_feed_name
