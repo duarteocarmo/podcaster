@@ -8,7 +8,7 @@ MODEL_DIR = (
     "/root/.local/share/tts/tts_models--multilingual--multi-dataset--xtts_v2"
 )
 LANGUAGE = "en"
-TRANSCRIBE_LAST = 22
+TRANSCRIBE_LAST = 23
 
 # PODCAST
 PODCAST_NAME = "Duarte O.Carmo's articles"
