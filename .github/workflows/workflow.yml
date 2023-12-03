@@ -1,9 +1,6 @@
 name: Run CI
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 9 * * *'
   push:
     branches:
       - master
@@ -12,6 +9,8 @@ on:
       - "README.md"
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: '0 9 * * *'
 
 jobs:
   publish:
