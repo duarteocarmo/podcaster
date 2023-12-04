@@ -110,6 +110,7 @@ def generate_podcast_feed_from(
     fg.link(href=PODCAST_WEBSITE)
     fg.logo(PODCAST_IMAGE)
     fg.author(PODCAST_AUTHOR)
+    fg.podcast.itunes_author(PODCAST_AUTHOR.get("name"))
 
     for article in articles:
         fe = fg.add_entry()
