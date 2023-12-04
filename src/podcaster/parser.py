@@ -10,6 +10,7 @@ from feedgen.feed import FeedGenerator
 from loguru import logger
 
 from podcaster.const import (
+    PODCAST_AUTHOR,
     PODCAST_CATEGORIES,
     PODCAST_DESCRIPTION,
     PODCAST_FEED_NAME,
@@ -108,6 +109,7 @@ def generate_podcast_feed_from(
     fg.description(PODCAST_DESCRIPTION)
     fg.link(href=PODCAST_WEBSITE)
     fg.logo(PODCAST_IMAGE)
+    fg.author(PODCAST_AUTHOR)
 
     for article in articles:
         fe = fg.add_entry()

@@ -18,6 +18,11 @@ PODCAST_EXPLICIT = False
 PODCAST_CATEGORIES = ("technology",)
 PODCAST_IMAGE = "https://duarteocarmo.com/images/logo.png"
 PODCAST_FEED_NAME = "podcast.xml"
+PODCAST_AUTHOR = {
+    "name": "Duarte O.Carmo",
+    "email": "me@duarteocarmo.com",
+    "uri": PODCAST_WEBSITE,
+}
 
 
 # MODAL
