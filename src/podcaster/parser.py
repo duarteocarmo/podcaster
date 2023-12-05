@@ -104,7 +104,7 @@ def generate_podcast_feed_from(
     fg = FeedGenerator()
     fg.load_extension("podcast")
 
-    fg.podcast.itunes_category(*PODCAST_CATEGORIES)
+    fg.podcast.itunes_category(PODCAST_CATEGORIES)
     fg.title(PODCAST_NAME)
     fg.description(PODCAST_DESCRIPTION)
     fg.link(href=PODCAST_WEBSITE)
