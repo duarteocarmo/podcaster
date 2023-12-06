@@ -1,3 +1,5 @@
+<img src="/docs/podcaster.png" width=80 height=80 align="right">
+
 # podcaster
 
 Turn your static blog into a podcast. 
