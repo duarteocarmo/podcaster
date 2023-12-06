@@ -5,7 +5,7 @@ Turn your static blog into a podcast.
 ## Requirements
 
 * A static website with an RSS feed
-* An S3 compatible bucket (default uses R2 from Cloudflare)
+* An S3 compatible bucket (default uses [R2 from Cloudflare](https://developers.cloudflare.com/r2/))
 * A [modal](https://modal.com/) account
 * A small recording of your voice (~1min should be enough)
 
