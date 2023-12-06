@@ -3,7 +3,7 @@ import os
 import requests
 from loguru import logger
 
-from podcaster.const import (
+from podcaster.config import (
     BUCKET_NAME,
     FEED_URL,
     TRANSCRIBE_LAST,
@@ -72,8 +72,12 @@ class Podcaster:
             logger.info("Website rebuilt")
 
 
-if __name__ == "__main__":
+def run():
     p = Podcaster(feed_url=FEED_URL, bucket_name=BUCKET_NAME)
     p.scan()
     p.upload()
     p.rebuild()
+
+
+if __name__ == "__main__":
+    run()

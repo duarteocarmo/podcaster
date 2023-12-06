@@ -1,1 +1,25 @@
 # podcaster
+
+Turn your static blog into a podcast. 
+
+## Requirements
+
+* A static website with an RSS feed
+* An S3 compatible bucket (default uses R2 from Cloudflare)
+* A [modal](https://modal.com/) account
+
+## Usage
+
+1. Clone this repo
+2. Tweak the configuration under `src/podcaster/config.py`
+3. Set env variables (example under `.env_example`) and source them with `source .env_example`
+4. Instal dependencies
+```bash
+$ make install-dev
+```
+5. Run
+```bash
+$ podcaster
+```
+
+Enjoy :)

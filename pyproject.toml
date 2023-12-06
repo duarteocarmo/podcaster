@@ -28,3 +28,6 @@ line-length = 79
 fixable = ["ALL"]
 exclude = [".env", ".venv", "venv", "notebooks"]
 show-source = true
+
+[project.scripts]
+podcaster = "podcaster.main:run"

@@ -8,13 +8,12 @@ from pydub import AudioSegment
 from synchronicity.exceptions import UserCodeException
 from TTS.api import TTS
 
-from podcaster.const import (
+from podcaster.config import (
     LANGUAGE,
     LOCAL_DATA_DIR,
     MODAL_GPU,
     MODAL_NAME,
     MODAL_REMOTE_DATA_DIR,
-    MODAL_VOLUME_NAME,
     MODEL_NAME,
     RESULTS_DIR,
     VOICE_FILE,
@@ -26,7 +25,6 @@ MODAL_IMAGE = (
     .pip_install_from_pyproject("pyproject.toml")
     .apt_install("ffmpeg")
 )
-MODAL_VOLUME = modal.NetworkFileSystem.persisted(MODAL_VOLUME_NAME)
 stub = modal.Stub(MODAL_NAME, image=MODAL_IMAGE)
 
 

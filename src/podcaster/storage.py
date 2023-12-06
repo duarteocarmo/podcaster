@@ -5,7 +5,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from loguru import logger
 
-from podcaster.const import BUCKET_URL
+from podcaster.config import BUCKET_URL
 from podcaster.parser import ParsedArticle
 
 

@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from loguru import logger
 
-from podcaster.const import (
+from podcaster.config import (
     PODCAST_AUTHOR,
     PODCAST_CATEGORIES,
     PODCAST_DESCRIPTION,
