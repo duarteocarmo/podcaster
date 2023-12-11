@@ -4,6 +4,8 @@
 
 Turn your static blog into a podcast. 
 
+[Original blog post.](https://duarteocarmo.com/blog/you-can-now-listen-to-this-blog)
+
 ## Requirements
 
 * A static website with an RSS feed
