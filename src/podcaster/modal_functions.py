@@ -1,4 +1,5 @@
 import os
+import re
 import typing as t
 
 import modal
@@ -44,7 +45,8 @@ def transcribe(
 ) -> bytes:
     os.environ["COQUI_TOS_AGREED"] = "1"  # avoid confirmation
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    target_file = f"{article.title}.wav"
+    sanitized_title = re.sub(r'[\/:*?"<>|]', "_", article.title)
+    target_file = f"{sanitized_title}.wav"
     text_to_transcribe = article.text_for_tts
     num_chars = len(text_to_transcribe)
     logger.info(
