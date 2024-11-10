@@ -29,3 +29,12 @@ $ podcaster
 ```
 
 Enjoy :)
+
+## TODO
+
+- [x] Pin those deps
+- [x] Update model to F5 TTS with a decent recording
+- [x] Add a better message that this is automated to audio and text 
+- [x] IF possible add audio image to podcast
+- [x] Better cover for podcast
+- [x] Optional pass through OpenAI to clean up audio (make sure audio independent)

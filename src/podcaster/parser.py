@@ -1,12 +1,14 @@
 import hashlib
-import re
 import typing as t
 from dataclasses import dataclass, field
 from datetime import datetime
+from textwrap import dedent
 
 import feedparser
+import humanize
 from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
+from litellm import completion
 from loguru import logger
 
 from podcaster.config import (
@@ -17,6 +19,7 @@ from podcaster.config import (
     PODCAST_IMAGE,
     PODCAST_NAME,
     PODCAST_WEBSITE,
+    PREPROCESSING_MODEL,
     PUBLIC_BUCKET_URL,
     RESULTS_DIR,
 )
@@ -43,20 +46,40 @@ class ParsedArticle:
         if not self.title.strip().endswith("."):
             self.title = self.title.strip() + "."
 
-        tts_content = prepare_text_for_tts(html_string=self.content)
-        self.text_for_tts = f"Article title: {self.title}\n{tts_content}"
         self.date = datetime.fromisoformat(self.date_as_str)
+
+        self.text_for_tts = prepare_text_for_tts(
+            html_string=self.content,
+            article_title=self.title,
+            posted_date=self.date,
+        )
+
         self.id = hashlib.md5(self.link.encode()).hexdigest()
         self.podcast_url = f"{PUBLIC_BUCKET_URL}/{RESULTS_DIR}{self.id}.mp3"
+
+    def preprocess_with_llm(self):
+        logger.info(f"Preprocessing article '{self.title}' with LLM...")
+        self.text_for_tts = preprocess_text_with_llm(self.text_for_tts)
+        logger.success("Preprocessing done.")
 
     @property
     def podcast_title(self):
         return f"#{self.number} {self.title.removesuffix('.')}"
 
 
-def prepare_text_for_tts(html_string: str) -> str:
+def prepare_text_for_tts(
+    html_string: str, article_title: str, posted_date: datetime
+) -> str:
     soup = BeautifulSoup(html_string, "html.parser")
-    to_remove = ["pre", "figcaption", "img", "iframe", "script", "details"]
+    to_remove = [
+        "pre",
+        "figcaption",
+        "img",
+        "iframe",
+        "script",
+        "details",
+        "table",
+    ]
 
     for bad_tag in soup.find_all(to_remove):
         bad_tag.decompose()
@@ -66,11 +89,50 @@ def prepare_text_for_tts(html_string: str) -> str:
 
     for header in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
         if not header.text.strip().endswith("."):
-            header.string = header.text.strip() + "."
+            header.string = f"\nArticle Section: {header.text.strip()}\n"
 
     text = soup.get_text()
 
-    text = re.sub(r"\s+", " ", text).strip()
+    text_tts = f"""
+This article was posted original on Duarte's blog on {humanize.naturaldate(posted_date)} with the title {article_title}.
+Note: This is a text-to-speech version of the article. The original article may contain images, links, and other elements that are not included in this audio version.
+
+Title: "{article_title}"
+
+{text}""".strip()
+
+    return text_tts
+
+
+def preprocess_text_with_llm(original_text: str) -> str:
+    SYSTEM_PROMPT = dedent("""
+        Please perform the following task:
+
+        * Translate the input into written word so a text-to-speech model can read it (things like fractions don't work well).
+        * Examples include 1/4 to one quarter, 20-30 to twenty to thirty, or $1.5m to one point five million dollars. Most dollar signs should be converted. When given a sentence, just replace those.
+        * Also replace things like emojis, special characters, code blocks, and other elements that don't work well with text-to-speech models.
+        * If something looks like a table of contents for the article, you can remove it.
+        * If something looks too dense as a table or code block, you can remove it, and just mention that it was removed.
+        * You can specify the pronunciation of words based on their phoneme sequence. For example 'I enjoyed a day in Besiktas, Istanbul.', can be as 'I enjoyed a day in (B EH1 SH IH0 K T AA0 SH), (IH0 S T AA1 N B UH0 L).' Don't abuse this, only use when you are sure the model will mispronounce it.
+        * Do not output anything else than the text to the speech-to-text model.
+    """).strip()
+
+    response = completion(
+        model=PREPROCESSING_MODEL,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": original_text},
+        ],
+        stream=False,
+    )
+
+    text = response["choices"][0]["message"]["content"]
+
+    if not isinstance(text, str):
+        logger.error(
+            "Could not preprocess text with LLM, returning original text"
+        )
+        return original_text
 
     return text
 
@@ -122,6 +184,6 @@ def generate_podcast_feed_from(
         fe.published(article.date)
 
     fg.rss_file(podcast_feed_name)
-    logger.info(f"Generated podcast feed with {len(articles)} articles")
+    logger.success(f"Generated podcast feed with {len(articles)} articles")
 
     return podcast_feed_name

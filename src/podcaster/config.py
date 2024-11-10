@@ -4,12 +4,15 @@ LOCAL_DATA_DIR = "data_raw/"
 MODEL_DIR = (
     "/root/.local/share/tts/tts_models--multilingual--multi-dataset--xtts_v2"
 )
-MODEL_NAME = "tts_models/multilingual/multi-dataset/xtts_v2"
+MODEL_NAME = "F5-TTS"
 RESULTS_DIR = "transcripts/"
 TRANSCRIBE_LAST = 25
-VOICE_FILE = "/root/data/duarte_conference_1min_enhanced.wav"
+REFERENCE_VOICE = "/root/data/reference_enhanced.wav"
+REFERENCE_TEXT = "/root/data/reference.txt"
 WEBSITE = "https://duarteocarmo.com"
 FEED_URL = f"{WEBSITE}/feed.xml"
+PREPROCESS_WITH_LLM = True
+PREPROCESSING_MODEL = "gpt-4o-mini"
 
 # MODAL
 MODAL_GPU = "any"
