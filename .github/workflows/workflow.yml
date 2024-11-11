@@ -31,3 +31,4 @@ jobs:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           REBUILD_TRIGGER_URL: ${{ secrets.REBUILD_TRIGGER_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
