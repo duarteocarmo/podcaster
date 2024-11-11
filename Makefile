@@ -49,7 +49,7 @@ build:
 
 ## Build the docker image
 docker:
-	docker build -f Dockerfile -t boilerplate .
+	docker build -f Dockerfile -t podcaster .
 
 #################################################################################
 # Self Documenting Commands                                                     #

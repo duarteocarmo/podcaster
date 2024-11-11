@@ -75,8 +75,8 @@ class Podcaster:
 def run():
     p = Podcaster(feed_url=FEED_URL, bucket_name=BUCKET_NAME)
     p.scan()
-    # p.upload()
-    # p.rebuild()
+    p.upload()
+    p.rebuild()
 
 
 if __name__ == "__main__":
