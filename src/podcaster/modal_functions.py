@@ -25,11 +25,6 @@ MODAL_IMAGE = (
     .apt_install("ffmpeg")
     .apt_install("git")
     .pip_install_from_pyproject("pyproject.toml")
-    .pip_install(
-        "torch==2.5.1",
-        "torchaudio==2.5.1",
-        "git+https://github.com/SWivid/F5-TTS.git@3fcdbc70b4a9d4299e1ecd0b5a1c35209f23fd69",
-    )
 )
 app = modal.App(MODAL_NAME, image=MODAL_IMAGE)
 

@@ -16,10 +16,9 @@ dependencies = [
   "feedgen>=1.0.0",
   "humanize>=4.11.0",
   "litellm>=1.52.3",
-  # on modal only
-  # "F5-TTS@git+https://github.com/SWivid/F5-TTS.git@3fcdbc70b4a9d4299e1ecd0b5a1c35209f23fd69",
-  # "torch==2.5.1",
-  # "torchaudio==2.5.1",
+  "F5-TTS@git+https://github.com/SWivid/F5-TTS.git@3fcdbc70b4a9d4299e1ecd0b5a1c35209f23fd69",
+  "torch==2.5.1",
+  "torchaudio==2.5.1",
   "pydub>=0.25.1",
 ]
 
