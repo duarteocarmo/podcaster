@@ -94,8 +94,10 @@ def prepare_text_for_tts(
     text = soup.get_text()
 
     text_tts = f"""
-This article was posted original on Duarte's blog on {humanize.naturaldate(posted_date)} with the title {article_title}.
-Note: This is a text-to-speech version of the article. The original article may contain images, links, and other elements that are not included in this audio version.
+This article was posted originally on Duarte's blog on {humanize.naturaldate(posted_date)}.
+This is a text-to-speech version of the article. The original article may contain images, links, and other elements not included in this audio version.
+
+--------------------
 
 Title: "{article_title}"
 
