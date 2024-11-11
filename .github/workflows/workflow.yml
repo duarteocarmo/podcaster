@@ -19,12 +19,8 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: "3.11.10"
-      - name: Install uv
-        run: python -m pip install uv
       - name: venv
-        run: python -m uv venv
-      - name: Install dev requirements
-        run: make install-dev
+        run: python -m pip install -r requirements-dev.txt && python -m pip install .
       - name: Check formatting
         run: make check
       - name: Run script
