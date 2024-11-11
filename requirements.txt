@@ -147,6 +147,8 @@ pydantic==2.7.4
     #   openai
 pydantic-core==2.18.4
     # via pydantic
+pydub==0.25.1
+    # via podcaster (pyproject.toml)
 pygments==2.18.0
     # via rich
 python-dateutil==2.9.0.post0
