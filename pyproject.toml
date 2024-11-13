@@ -14,7 +14,6 @@ dependencies = [
   "modal==0.65.4",
   "beautifulsoup4>=4.12.3",
   "feedgen>=1.0.0",
-  "humanize>=4.11.0",
   "litellm>=1.52.3",
   "F5-TTS@git+https://github.com/SWivid/F5-TTS.git@3fcdbc70b4a9d4299e1ecd0b5a1c35209f23fd69",
   "torch==2.5.1",

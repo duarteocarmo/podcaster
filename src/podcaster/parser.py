@@ -5,7 +5,6 @@ from datetime import datetime
 from textwrap import dedent
 
 import feedparser
-import humanize
 from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
 from litellm import completion
@@ -93,8 +92,9 @@ def prepare_text_for_tts(
 
     text = soup.get_text()
 
+    # Maybe you can prounounce this name better? Aha
     text_tts = f"""
-This article was posted originally on Duarte's blog on {humanize.naturaldate(posted_date)}.
+This article was posted originally on Dwarteh's blog on {posted_date.strftime('%B %d, %Y')}.
 This is a text-to-speech version of the article. The original article may contain images, links, and other elements not included in this audio version.
 
 --------------------
