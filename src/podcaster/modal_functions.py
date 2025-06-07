@@ -20,22 +20,26 @@ from podcaster.config import (
 )
 from podcaster.parser import ParsedArticle
 
+cuda_version = "12.8.0"
+flavor = "devel"
+operating_sys = "ubuntu22.04"
+tag = f"{cuda_version}-{flavor}-{operating_sys}"
+
 MODAL_IMAGE = (
-    modal.Image.debian_slim()
+    modal.Image.from_registry(f"nvidia/cuda:{tag}", add_python="3.11")
     .apt_install("ffmpeg")
     .apt_install("git")
     .pip_install_from_pyproject("pyproject.toml")
+    .add_local_dir(
+        LOCAL_DATA_DIR,
+        remote_path=MODAL_REMOTE_DATA_DIR,
+    )
 )
 app = modal.App(MODAL_NAME, image=MODAL_IMAGE)
 
 
 @app.function(
     gpu=MODAL_GPU,
-    mounts=[
-        modal.Mount.from_local_dir(
-            LOCAL_DATA_DIR, remote_path=MODAL_REMOTE_DATA_DIR
-        )
-    ],
     timeout=400,
 )
 def transcribe(

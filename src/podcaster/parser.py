@@ -2,12 +2,12 @@ import hashlib
 import typing as t
 from dataclasses import dataclass, field
 from datetime import datetime
-from textwrap import dedent
 
 import feedparser
 from bs4 import BeautifulSoup
 from feedgen.feed import FeedGenerator
-from litellm import completion
+
+# from litellm import completion
 from loguru import logger
 
 from podcaster.config import (
@@ -18,7 +18,6 @@ from podcaster.config import (
     PODCAST_IMAGE,
     PODCAST_NAME,
     PODCAST_WEBSITE,
-    PREPROCESSING_MODEL,
     PUBLIC_BUCKET_URL,
     RESULTS_DIR,
 )
@@ -94,7 +93,7 @@ def prepare_text_for_tts(
 
     # Maybe you can prounounce this name better? Aha
     text_tts = f"""
-This article was posted originally on Dwarteh's blog on {posted_date.strftime('%B %d, %Y')}.
+This article was posted originally on Dwarteh's blog on {posted_date.strftime("%B %d, %Y")}.
 This is a text-to-speech version of the article. The original article may contain images, links, and other elements not included in this audio version.
 
 --------------------
@@ -107,36 +106,39 @@ Title: "{article_title}"
 
 
 def preprocess_text_with_llm(original_text: str) -> str:
-    SYSTEM_PROMPT = dedent("""
-        Please perform the following task:
-
-        * Translate the input into written word so a text-to-speech model can read it (things like fractions don't work well).
-        * Examples include 1/4 to one quarter, 20-30 to twenty to thirty, or $1.5m to one point five million dollars. Most dollar signs should be converted. When given a sentence, just replace those.
-        * Also replace things like emojis, special characters, code blocks, and other elements that don't work well with text-to-speech models.
-        * If something looks like a table of contents for the article, you can remove it.
-        * If something looks too dense as a table or code block, you can remove it, and just mention that it was removed.
-        * You can specify the pronunciation of words based on their phoneme sequence. For example 'I enjoyed a day in Besiktas, Istanbul.', can be as 'I enjoyed a day in (B EH1 SH IH0 K T AA0 SH), (IH0 S T AA1 N B UH0 L).' Don't abuse this, only use when you are sure the model will mispronounce it.
-        * Do not output anything else than the text to the speech-to-text model.
-    """).strip()
-
-    response = completion(
-        model=PREPROCESSING_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": original_text},
-        ],
-        stream=False,
+    return (
+        original_text  # TODO: Uncomment this when you have a working LLM setup
     )
-
-    text = response["choices"][0]["message"]["content"]
-
-    if not isinstance(text, str):
-        logger.error(
-            "Could not preprocess text with LLM, returning original text"
-        )
-        return original_text
-
-    return text
+    # SYSTEM_PROMPT = dedent("""
+    #     Please perform the following task:
+    #
+    #     * Translate the input into written word so a text-to-speech model can read it (things like fractions don't work well).
+    #     * Examples include 1/4 to one quarter, 20-30 to twenty to thirty, or $1.5m to one point five million dollars. Most dollar signs should be converted. When given a sentence, just replace those.
+    #     * Also replace things like emojis, special characters, code blocks, and other elements that don't work well with text-to-speech models.
+    #     * If something looks like a table of contents for the article, you can remove it.
+    #     * If something looks too dense as a table or code block, you can remove it, and just mention that it was removed.
+    #     * You can specify the pronunciation of words based on their phoneme sequence. For example 'I enjoyed a day in Besiktas, Istanbul.', can be as 'I enjoyed a day in (B EH1 SH IH0 K T AA0 SH), (IH0 S T AA1 N B UH0 L).' Don't abuse this, only use when you are sure the model will mispronounce it.
+    #     * Do not output anything else than the text to the speech-to-text model.
+    # """).strip()
+    #
+    # response = completion(
+    #     model=PREPROCESSING_MODEL,
+    #     messages=[
+    #         {"role": "system", "content": SYSTEM_PROMPT},
+    #         {"role": "user", "content": original_text},
+    #     ],
+    #     stream=False,
+    # )
+    #
+    # text = response["choices"][0]["message"]["content"]
+    #
+    # if not isinstance(text, str):
+    #     logger.error(
+    #         "Could not preprocess text with LLM, returning original text"
+    #     )
+    #     return original_text
+    #
+    # return text
 
 
 def get_articles(feed_url: str) -> t.List[ParsedArticle]:
