@@ -10,6 +10,7 @@ from podcaster.config import (
 )
 from podcaster.modal_functions import transcribe_to_file
 from podcaster.parser import (
+    ParsedArticle,
     generate_podcast_feed_from,
     get_articles,
 )
@@ -40,14 +41,19 @@ class Podcaster:
             f"Found {len(articles_to_transcribe)} articles to transcribe"
         )
 
-        transcribed_files = transcribe_to_file(
-            articles=articles_to_transcribe, remote=True
-        )
+        transcribed_files = transcribe_to_file(articles=articles_to_transcribe)
 
         self.s3.upload_files(
             files=list(zip(transcribed_files, transcribed_files))
         )
         self.trigger_website_rebuild = True
+
+    def test(self):
+        all_articles: list[ParsedArticle] = get_articles(self.feed_url)[
+            -self.transcribe_last :
+        ]
+        last_article = all_articles[-1]
+        last_article.preprocess_with_llm(model="openai/gpt-5")
 
     def upload(self):
         all_articles = get_articles(self.feed_url)[-self.transcribe_last :]

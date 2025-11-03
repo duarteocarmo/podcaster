@@ -21,7 +21,7 @@ Turn your static blog into a podcast.
 3. Set env variables (example under `.env_example`) and source them with `source .env_example`
 4. Install dependencies
 ```bash
-$ make install-dev
+$ make install
 ```
 5. Run
 ```bash
@@ -38,3 +38,7 @@ Enjoy :)
 - [x] IF possible add audio image to podcast
 - [x] Better cover for podcast
 - [x] Optional pass through OpenAI to clean up audio (make sure audio independent)
+- [ ] Robust LLM call 
+- [ ] Don't wait to transcribe all posts before uploading 
+- [ ] Better episode show notes etc.
+- [ ] Clean up
