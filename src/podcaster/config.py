@@ -12,7 +12,7 @@ REFERENCE_TEXT = "/root/data/reference.txt"
 WEBSITE = "https://duarteocarmo.com"
 FEED_URL = f"{WEBSITE}/feed.xml"
 PREPROCESS_WITH_LLM = True
-PREPROCESSING_MODEL = "gpt-4o-mini"
+PREPROCESSING_MODEL = "openai/gpt-5"
 
 # MODAL
 MODAL_GPU = "any"
@@ -29,7 +29,9 @@ PUBLIC_BUCKET_URL = "https://r2.duarteocarmo.com"
 # PODCAST
 NAME = "Duarte O.Carmo"
 PODCAST_CATEGORIES = [{"cat": "Technology"}]
-PODCAST_DESCRIPTION = "My personal website. Here, you can read my blog posts, and learn about my projects. I write about data science, AI, programming, business, and other topics."
+PODCAST_DESCRIPTION = """
+A podcast version of my personal website. All the episodes are generated from a text to speech model.
+""".strip()
 PODCAST_EXPLICIT = False
 PODCAST_FEED_NAME = "podcast.xml"
 PODCAST_IMAGE = f"{PUBLIC_BUCKET_URL}/cover.png"
