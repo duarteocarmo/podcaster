@@ -156,10 +156,12 @@ def get_tts_text(
     </summary>
 
     <links>
+    <p>
     <ul>
     [Markdown bullet list of links here]
     <li><a href="https://example.com">Example Link</a></li>
     </ul>
+    </p>
     </links>
     """).strip("\n")
 

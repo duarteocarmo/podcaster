@@ -18,7 +18,7 @@ with image.imports():
     from chatterbox.tts import ChatterboxTTS
 
 
-@app.function(gpu="a10g", max_containers=10)
+@app.function(gpu="a10g", max_containers=5)
 def transcribe(text: str, generation_kwargs: dict = {}) -> bytes:
     model = ChatterboxTTS.from_pretrained(device="cuda")
     wav = model.generate(
