@@ -78,11 +78,11 @@ class Podcaster:
             logger.success("Website rebuilt")
 
 
-def run():
+def main():
     p = Podcaster(feed_url=FEED_URL, bucket_name=BUCKET_NAME)
     p.scan()
     p.rebuild()
 
 
 if __name__ == "__main__":
-    run()
+    main()

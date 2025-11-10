@@ -37,3 +37,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/podcaster"]
+
+[project.scripts]
+podcaster = "podcaster.main:main"
