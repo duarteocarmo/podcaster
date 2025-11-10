@@ -38,17 +38,19 @@ def split_text_into_chunks(text: str, max_chars: int = 300) -> list[str]:
 def concatenate_wav_bytes(audio_bytes_list: list[bytes]) -> bytes:
     from pydub import AudioSegment
 
-    combined = AudioSegment.empty()
-    for audio_bytes in audio_bytes_list:
-        combined += AudioSegment.from_wav(io.BytesIO(audio_bytes))
+    combined = AudioSegment.from_wav(io.BytesIO(audio_bytes_list[0]))
+    for audio_bytes in audio_bytes_list[1:]:
+        segment = AudioSegment.from_wav(io.BytesIO(audio_bytes))
+        combined = combined.append(segment, crossfade=100)  # 100ms crossfade
 
     output = io.BytesIO()
     combined.export(output, format="wav")
+    logger.info(f"Merged {len(audio_bytes_list)} chunks into output.wav")
     return output.getvalue()
 
 
 def text_to_bytes(text: str) -> bytes:
-    chunks = split_text_into_chunks(text)
+    chunks = split_text_into_chunks(text, max_chars=200)
     generation_kwargs = {
         "exaggeration": 0.2,
         "cfg_weight": 0.6,

@@ -38,7 +38,8 @@ Enjoy :)
 - [x] IF possible add audio image to podcast
 - [x] Better cover for podcast
 - [x] Optional pass through OpenAI to clean up audio (make sure audio independent)
-- [ ] Robust LLM call 
-- [ ] Don't wait to transcribe all posts before uploading 
+- [x] Robust LLM call 
+- [x] Don't wait to transcribe all posts before uploading 
 - [ ] Better episode show notes etc.
+- [ ] Add original blog link to show notes
 - [ ] Clean up
