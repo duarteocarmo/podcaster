@@ -6,14 +6,15 @@ from loguru import logger
 from podcaster.config import (
     BUCKET_NAME,
     FEED_URL,
+    PREPROCESSING_MODEL,
     TRANSCRIBE_LAST,
 )
-from podcaster.modal_functions import transcribe_to_file
 from podcaster.parser import (
     generate_podcast_feed_from,
     get_articles,
 )
 from podcaster.storage import S3BucketManager
+from podcaster.transcription import transcribe_to_file
 
 
 class Podcaster:
@@ -31,6 +32,11 @@ class Podcaster:
         articles_to_transcribe = self.s3.get_untranscribed(
             articles=all_articles
         )
+        for article in articles_to_transcribe:
+            all_articles.remove(article)
+        articles_to_transcribe = sorted(
+            articles_to_transcribe, key=lambda x: x.date
+        )
 
         if len(articles_to_transcribe) < 1:
             logger.info("No new articles to transcribe")
@@ -40,20 +46,20 @@ class Podcaster:
             f"Found {len(articles_to_transcribe)} articles to transcribe"
         )
 
-        transcribed_files = transcribe_to_file(
-            articles=articles_to_transcribe, remote=True
-        )
+        for article in articles_to_transcribe:
+            assert article not in all_articles
+            article.preprocess_with_llm(PREPROCESSING_MODEL)
+            mp3_file_name = transcribe_to_file(
+                article=article,
+            )
+            self.s3.upload_files(files=[(mp3_file_name, mp3_file_name)])
+            logger.info(f"Uploaded file to S3: {mp3_file_name}")
+            all_articles.append(article)
+            feed_file = generate_podcast_feed_from(articles=all_articles)
+            self.s3.upload_files(files=[(feed_file, feed_file)])
+            logger.info("Updated podcast feed in S3")
 
-        self.s3.upload_files(
-            files=list(zip(transcribed_files, transcribed_files))
-        )
         self.trigger_website_rebuild = True
-
-    def upload(self):
-        all_articles = get_articles(self.feed_url)[-self.transcribe_last :]
-        transcribed_articles = self.s3.get_transcribed(articles=all_articles)
-        feed_file = generate_podcast_feed_from(articles=transcribed_articles)
-        self.s3.upload_files(files=[(feed_file, feed_file)])
 
     def rebuild(self):
         rebuild_trigger_url = os.getenv("REBUILD_TRIGGER_URL", None)
@@ -75,7 +81,6 @@ class Podcaster:
 def run():
     p = Podcaster(feed_url=FEED_URL, bucket_name=BUCKET_NAME)
     p.scan()
-    p.upload()
     p.rebuild()
 
 
