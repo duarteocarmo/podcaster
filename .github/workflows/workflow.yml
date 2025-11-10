@@ -25,6 +25,8 @@ jobs:
         run: uv sync
       - name: Check formatting
         run: make check
+      - name: Download NLTK data
+        run: uv run python -c "import nltk; nltk.download('punkt_tab')"
       - name: Run script
         run: uv run podcaster
         env:
