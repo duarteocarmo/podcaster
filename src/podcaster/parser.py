@@ -263,7 +263,7 @@ def generate_podcast_feed_from(
         fe.id(article.podcast_url)
         fe.title(article.podcast_title)
         fe.link(href=article.link)
-        fe.description(article.podcast_description)
+        fe.content(article.podcast_description, type="CDATA")
         fe.enclosure(article.podcast_url, 0, "audio/mpeg")
         fe.published(article.date)
 
