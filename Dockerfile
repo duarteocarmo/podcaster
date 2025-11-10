@@ -7,16 +7,16 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION}-python${PYTHON_VERSION}-${BASE_LAYER}
 
 WORKDIR /app
 
-# Copy dependency files
+# Copy dependency files and README (needed for package metadata)
 COPY pyproject.toml .
 COPY uv.lock .
+COPY README.md .
 
 # Install dependencies
 RUN uv sync --locked --no-dev
 
 # Copy source code
 COPY src ./src
-COPY README.md .
 
 # Set the environment to use the virtual environment
 ENV PATH="/app/.venv/bin:$PATH"
