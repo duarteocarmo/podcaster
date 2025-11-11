@@ -1,5 +1,3 @@
-<img src="/docs/podcaster.png" width=80 height=80 align="right">
-
 # podcaster
 
 Turn your static blog into a podcast. 
@@ -30,16 +28,8 @@ $ podcaster
 
 Enjoy :)
 
-## TODO
+## References
 
-- [x] Pin those deps
-- [x] Update model to F5 TTS with a decent recording
-- [x] Add a better message that this is automated to audio and text 
-- [x] IF possible add audio image to podcast
-- [x] Better cover for podcast
-- [x] Optional pass through OpenAI to clean up audio (make sure audio independent)
-- [x] Robust LLM call 
-- [x] Don't wait to transcribe all posts before uploading 
-- [ ] Better episode show notes etc.
-- [ ] Add original blog link to show notes
-- [ ] Clean up
+- [Original blog post: You can now listen to this blog](https://duarteocarmo.com/blog/you-can-now-listen-to-this-blog)
+- [TTS still sucks](https://duarteocarmo.com/blog/tts-still-sucks)
+- [Podcast TTS with F5-TTS in Python](https://duarteocarmo.com/blog/podcast-tts-f5-tts-python)

@@ -1,23 +1,24 @@
 # GENERAL
-LANGUAGE = "en"
-LOCAL_DATA_DIR = "data_raw/"
-MODEL_DIR = (
-    "/root/.local/share/tts/tts_models--multilingual--multi-dataset--xtts_v2"
-)
-MODEL_NAME = "F5-TTS"
 RESULTS_DIR = "transcripts/"
-TRANSCRIBE_LAST = 25
-REFERENCE_VOICE = "/root/data/reference_enhanced.wav"
-REFERENCE_TEXT = "/root/data/reference.txt"
+TRANSCRIBE_LAST_N_ARTICLES = 25
 WEBSITE = "https://duarteocarmo.com"
 FEED_URL = f"{WEBSITE}/feed.xml"
-PREPROCESS_WITH_LLM = True
-PREPROCESSING_MODEL = "openai/gpt-5"
+LLM_PREPROCESSING_MODEL = "openai/gpt-5"
 
 # MODAL
-MODAL_GPU = "any"
-MODAL_NAME = "podcaster"
-MODAL_REMOTE_DATA_DIR = "/root/data"
+MODAL_GPU = "a10g"
+MODAL_MAX_CONTAINERS = 5
+MODAL_APP_NAME = "podcaster"
+MODAL_PYTHON_VERSION = "3.10"
+MODAL_REMOTE_REFERENCE_AUDIO_PATH = "/root/reference.wav"
+MODAL_LOCAL_REFERENCE_AUDIO_PATH = "./data_raw/reference_enhanced.wav"
+
+# CHATTERBOX TTS
+CHATTERBOX_MAX_CHARS_PER_CHUNK = 200
+CHATTERBOX_EXAGGERATION = 0.2
+CHATTERBOX_CFG_WEIGHT = 0.6
+CHATTERBOX_TEMPERATURE = 0.5
+CHATTERBOX_CROSSFADE_MS = 100
 
 # STORAGE
 BUCKET_NAME = "podcaster"

@@ -6,13 +6,20 @@ from loguru import logger
 from pydub import AudioSegment
 
 from podcaster.config import (
+    CHATTERBOX_CFG_WEIGHT,
+    CHATTERBOX_CROSSFADE_MS,
+    CHATTERBOX_EXAGGERATION,
+    CHATTERBOX_MAX_CHARS_PER_CHUNK,
+    CHATTERBOX_TEMPERATURE,
     RESULTS_DIR,
 )
 from podcaster.modal_functions import app, transcribe
 from podcaster.parser import ParsedArticle
 
 
-def split_text_into_chunks(text: str, max_chars: int = 300) -> list[str]:
+def split_text_into_chunks(
+    text: str, max_chars: int = CHATTERBOX_MAX_CHARS_PER_CHUNK
+) -> list[str]:
     """Split text into sentence-based chunks of <= max_chars."""
     import nltk
     from nltk.tokenize import sent_tokenize
@@ -41,7 +48,7 @@ def concatenate_wav_bytes(audio_bytes_list: list[bytes]) -> bytes:
     combined = AudioSegment.from_wav(io.BytesIO(audio_bytes_list[0]))
     for audio_bytes in audio_bytes_list[1:]:
         segment = AudioSegment.from_wav(io.BytesIO(audio_bytes))
-        combined = combined.append(segment, crossfade=100)  # 100ms crossfade
+        combined = combined.append(segment, crossfade=CHATTERBOX_CROSSFADE_MS)
 
     output = io.BytesIO()
     combined.export(output, format="wav")
@@ -50,11 +57,13 @@ def concatenate_wav_bytes(audio_bytes_list: list[bytes]) -> bytes:
 
 
 def text_to_bytes(text: str) -> bytes:
-    chunks = split_text_into_chunks(text, max_chars=200)
+    chunks = split_text_into_chunks(
+        text, max_chars=CHATTERBOX_MAX_CHARS_PER_CHUNK
+    )
     generation_kwargs = {
-        "exaggeration": 0.2,
-        "cfg_weight": 0.6,
-        "temperature": 0.5,
+        "exaggeration": CHATTERBOX_EXAGGERATION,
+        "cfg_weight": CHATTERBOX_CFG_WEIGHT,
+        "temperature": CHATTERBOX_TEMPERATURE,
     }
     print(f"Text split into {len(chunks)} chunks.")
     audio_bytes = None

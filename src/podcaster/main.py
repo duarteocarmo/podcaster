@@ -6,8 +6,8 @@ from loguru import logger
 from podcaster.config import (
     BUCKET_NAME,
     FEED_URL,
-    PREPROCESSING_MODEL,
-    TRANSCRIBE_LAST,
+    LLM_PREPROCESSING_MODEL,
+    TRANSCRIBE_LAST_N_ARTICLES,
 )
 from podcaster.parser import (
     generate_podcast_feed_from,
@@ -22,7 +22,7 @@ class Podcaster:
         self.feed_url = feed_url
         self.bucket_name = bucket_name
         self.s3 = S3BucketManager(bucket_name=self.bucket_name)
-        self.transcribe_last = TRANSCRIBE_LAST
+        self.transcribe_last = TRANSCRIBE_LAST_N_ARTICLES
         self.trigger_website_rebuild = False
 
     def scan(self):
@@ -48,7 +48,7 @@ class Podcaster:
 
         for article in articles_to_transcribe:
             assert article not in all_articles
-            article.preprocess_with_llm(PREPROCESSING_MODEL)
+            article.preprocess_with_llm(LLM_PREPROCESSING_MODEL)
             mp3_file_name = transcribe_to_file(
                 article=article,
             )
