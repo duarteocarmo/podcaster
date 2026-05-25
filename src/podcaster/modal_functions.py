@@ -1,5 +1,4 @@
 import io
-import logging
 import os
 from typing import Any
 
@@ -46,7 +45,6 @@ image = (
 app = modal.App(MODAL_APP_NAME, image=image)
 hf_cache = modal.Volume.from_name("huggingface-cache", create_if_missing=True)
 vllm_cache = modal.Volume.from_name("vllm-cache", create_if_missing=True)
-logger = logging.getLogger(__name__)
 prompt_len_cache: dict[str, tuple[Any, Any]] = {}
 
 
@@ -102,10 +100,7 @@ def _estimate_prompt_len(
             estimate_ref_code_len=lambda ref_audio: None,
         )
     except Exception as exc:
-        logger.warning(
-            "Failed to estimate prompt length, using fallback 2048: %s", exc
-        )
-        return 2048
+        raise RuntimeError("Failed to estimate prompt length") from exc
 
 
 def _build_custom_voice_request(

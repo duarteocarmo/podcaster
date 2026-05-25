@@ -139,10 +139,7 @@ def _estimate_prompt_len(
             estimate_ref_code_len=estimate_ref_code_len,
         )
     except Exception as exc:
-        logger.warning(
-            "Failed to estimate prompt length, using fallback 2048: %s", exc
-        )
-        return 2048
+        raise RuntimeError("Failed to estimate prompt length") from exc
 
 
 def _build_custom_voice_request(
