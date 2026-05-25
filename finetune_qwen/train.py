@@ -78,15 +78,23 @@ def prepare_data(args, experiment_dir):
         train_entries = entries
         if args.num_samples and args.num_samples < len(train_entries):
             train_entries = rng.sample(train_entries, args.num_samples)
-            print(f"Subsampled to {args.num_samples} training entries (seed={args.seed})")
+            print(
+                f"Subsampled to {args.num_samples} training entries (seed={args.seed})"
+            )
         test_entries = _paired_entries(args.test_dir)
     else:
         rng.shuffle(entries)
-        train_count = min(args.num_samples, len(entries)) if args.num_samples else len(entries)
+        train_count = (
+            min(args.num_samples, len(entries))
+            if args.num_samples
+            else len(entries)
+        )
         train_entries = entries[:train_count]
-        test_entries = entries[train_count:train_count + args.test_samples]
+        test_entries = entries[train_count : train_count + args.test_samples]
         if not test_entries:
-            raise ValueError("No samples left for test split; lower --num_samples or add more samples")
+            raise ValueError(
+                "No samples left for test split; lower --num_samples or add more samples"
+            )
         print(f"Split samples with seed={args.seed}")
 
     print(f"Training samples: {len(train_entries)}")
@@ -119,6 +127,7 @@ def prepare_data(args, experiment_dir):
 def _normalize(text):
     # lowercase, punctuation removed, whitespace normalized
     import re
+
     return re.sub(r"\s+", " ", re.sub(r"[^\w\s]", "", text.lower())).strip()
 
 
@@ -148,10 +157,12 @@ def evaluate(
         return
 
     transcripts = [entry["text"] for entry in test_entries]
-    basenames = [os.path.splitext(os.path.basename(entry["audio"]))[0] for entry in test_entries]
+    basenames = [
+        os.path.splitext(os.path.basename(entry["audio"]))[0]
+        for entry in test_entries
+    ]
     ref_wavs = [entry["audio"] for entry in test_entries]
 
-    # --- TTS inference ---
     tts = Qwen3TTSModel.from_pretrained(
         checkpoint_dir,
         device_map="cuda:0",
@@ -180,7 +191,9 @@ def evaluate(
         if sr is None:
             sr = batch_sr
         elif sr != batch_sr:
-            raise ValueError(f"Inconsistent sample rates during eval: {sr} vs {batch_sr}")
+            raise ValueError(
+                f"Inconsistent sample rates during eval: {sr} vs {batch_sr}"
+            )
 
         for basename, wav in zip(batch_basenames, batch_wavs):
             out_path = os.path.join(audio_dir, f"{basename}_finetuned.wav")
@@ -192,12 +205,17 @@ def evaluate(
     del tts
     torch.cuda.empty_cache()
 
-    # --- ASR transcription ---
     # onnxruntime-gpu requires CUDA 12; use CPU provider on CUDA 13+
-    cuda_major = int(torch.version.cuda.split(".")[0]) if torch.version.cuda else 0
-    asr_provider = "CUDAExecutionProvider" if cuda_major == 12 else "CPUExecutionProvider"
+    cuda_major = (
+        int(torch.version.cuda.split(".")[0]) if torch.version.cuda else 0
+    )
+    asr_provider = (
+        "CUDAExecutionProvider" if cuda_major == 12 else "CPUExecutionProvider"
+    )
     print(f"ASR: using {asr_provider} (CUDA {torch.version.cuda})")
-    asr = onnx_asr.load_model("nemo-parakeet-tdt-0.6b-v3", providers=[asr_provider])
+    asr = onnx_asr.load_model(
+        "nemo-parakeet-tdt-0.6b-v3", providers=[asr_provider]
+    )
 
     results = []
     for basename, transcript, ref_wav_path, gen_path, gen_wav in zip(
@@ -215,30 +233,41 @@ def evaluate(
         hyp_norm = _normalize(asr_text)
         sample_wer = wer(ref_norm, hyp_norm)
         sample_cer = cer(ref_norm, hyp_norm)
-        dur_diff = round(gen_duration - ref_duration, 3) if ref_duration is not None else None
+        dur_diff = (
+            round(gen_duration - ref_duration, 3)
+            if ref_duration is not None
+            else None
+        )
 
         print(
             f"[{basename}] WER={sample_wer:.2%}  CER={sample_cer:.2%}"
             + (f"  dur_diff={dur_diff:+.2f}s" if dur_diff is not None else "")
         )
-        results.append({
-            "file": basename,
-            "reference": transcript,
-            "asr": asr_text,
-            "wer": round(sample_wer, 4),
-            "cer": round(sample_cer, 4),
-            "gen_duration_s": round(gen_duration, 3),
-            "ref_duration_s": round(ref_duration, 3) if ref_duration is not None else None,
-            "duration_diff_s": dur_diff,
-        })
+        results.append(
+            {
+                "file": basename,
+                "reference": transcript,
+                "asr": asr_text,
+                "wer": round(sample_wer, 4),
+                "cer": round(sample_cer, 4),
+                "gen_duration_s": round(gen_duration, 3),
+                "ref_duration_s": round(ref_duration, 3)
+                if ref_duration is not None
+                else None,
+                "duration_diff_s": dur_diff,
+            }
+        )
 
     del asr
     torch.cuda.empty_cache()
 
-    # --- Summary ---
     avg_wer = sum(r["wer"] for r in results) / len(results)
     avg_cer = sum(r["cer"] for r in results) / len(results)
-    dur_diffs = [r["duration_diff_s"] for r in results if r["duration_diff_s"] is not None]
+    dur_diffs = [
+        r["duration_diff_s"]
+        for r in results
+        if r["duration_diff_s"] is not None
+    ]
     avg_dur_diff = sum(dur_diffs) / len(dur_diffs) if dur_diffs else None
 
     print(f"\n--- Eval Summary ({len(results)} samples) ---")
@@ -253,11 +282,15 @@ def evaluate(
             "num_samples": len(results),
             "avg_wer": round(avg_wer, 4),
             "avg_cer": round(avg_cer, 4),
-            "avg_duration_diff_s": round(avg_dur_diff, 3) if avg_dur_diff is not None else None,
+            "avg_duration_diff_s": round(avg_dur_diff, 3)
+            if avg_dur_diff is not None
+            else None,
         },
         "samples": results,
     }
-    results_path = os.path.join(os.path.dirname(audio_dir), "eval_results.json")
+    results_path = os.path.join(
+        os.path.dirname(audio_dir), "eval_results.json"
+    )
     with open(results_path, "w") as f:
         json.dump(eval_results, f, indent=2, ensure_ascii=False)
     print(f"Saved eval results → {results_path}")
@@ -284,11 +317,23 @@ def train():
     global target_speaker_embedding
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--init_model_path", type=str, default="Qwen/Qwen3-TTS-12Hz-0.6B-Base")
+    parser.add_argument(
+        "--init_model_path", type=str, default="Qwen/Qwen3-TTS-12Hz-0.6B-Base"
+    )
     parser.add_argument("--train_dir", type=str, required=True)
     parser.add_argument("--ref_dir", type=str, required=True)
-    parser.add_argument("--ref_audio", type=str, default=None, help="Specific reference wav (defaults to first file in ref_dir)")
-    parser.add_argument("--test_dir", type=str, default=None, help="Optional explicit test dir; otherwise split from train_dir")
+    parser.add_argument(
+        "--ref_audio",
+        type=str,
+        default=None,
+        help="Specific reference wav (defaults to first file in ref_dir)",
+    )
+    parser.add_argument(
+        "--test_dir",
+        type=str,
+        default=None,
+        help="Optional explicit test dir; otherwise split from train_dir",
+    )
     parser.add_argument("--experiment_name", type=str, required=True)
     parser.add_argument("--speaker_name", type=str, default="duarte")
     parser.add_argument("--num_samples", type=int, default=200)
@@ -298,12 +343,23 @@ def train():
     parser.add_argument("--lr", type=float, default=2e-6)
     parser.add_argument("--num_epochs", type=int, default=3)
     parser.add_argument("--grad_accum", type=int, default=4)
-    parser.add_argument("--eval_batch_size", type=int, default=4,
-                        help="Number of test prompts to generate per eval batch")
-    parser.add_argument("--eval_max_new_tokens", type=int, default=480,
-                        help="Maximum codec tokens to generate per eval sample")
-    parser.add_argument("--subcodec_input", action="store_true",
-                        help="Include codec layers 1-15 in AR input (disabled by default — causes speech acceleration)")
+    parser.add_argument(
+        "--eval_batch_size",
+        type=int,
+        default=4,
+        help="Number of test prompts to generate per eval batch",
+    )
+    parser.add_argument(
+        "--eval_max_new_tokens",
+        type=int,
+        default=480,
+        help="Maximum codec tokens to generate per eval sample",
+    )
+    parser.add_argument(
+        "--subcodec_input",
+        action="store_true",
+        help="Include codec layers 1-15 in AR input (disabled by default — causes speech acceleration)",
+    )
     args = parser.parse_args()
 
     experiment_dir = os.path.join("experiments", args.experiment_name)
@@ -327,6 +383,7 @@ def train():
     cleanup_memory()
 
     from huggingface_hub import snapshot_download
+
     MODEL_PATH = snapshot_download(args.init_model_path, local_files_only=True)
 
     qwen3tts = Qwen3TTSModel.from_pretrained(
@@ -340,10 +397,15 @@ def train():
         train_data = [json.loads(line) for line in f]
     dataset = TTSDataset(train_data, qwen3tts.processor, config)
     train_dataloader = DataLoader(
-        dataset, batch_size=args.batch_size, shuffle=True, collate_fn=dataset.collate_fn
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        collate_fn=dataset.collate_fn,
     )
 
-    optimizer = AdamW(qwen3tts.model.parameters(), lr=args.lr, weight_decay=0.01)
+    optimizer = AdamW(
+        qwen3tts.model.parameters(), lr=args.lr, weight_decay=0.01
+    )
 
     model, optimizer, train_dataloader = accelerator.prepare(
         qwen3tts.model, optimizer, train_dataloader
@@ -375,11 +437,14 @@ def train():
                 input_codec_ids = input_ids[:, :, 1]
 
                 input_text_embedding = (
-                    model.talker.text_projection(model.talker.model.text_embedding(input_text_ids))
+                    model.talker.text_projection(
+                        model.talker.model.text_embedding(input_text_ids)
+                    )
                     * text_embedding_mask
                 )
                 input_codec_embedding = (
-                    model.talker.model.codec_embedding(input_codec_ids) * codec_embedding_mask
+                    model.talker.model.codec_embedding(input_codec_ids)
+                    * codec_embedding_mask
                 )
                 input_codec_embedding[:, 6, :] = speaker_embedding
 
@@ -387,10 +452,14 @@ def train():
 
                 if args.subcodec_input:
                     for i in range(1, 16):
-                        codec_i_embedding = model.talker.code_predictor.get_input_embeddings()[i - 1](
-                            codec_ids[:, :, i]
+                        codec_i_embedding = (
+                            model.talker.code_predictor.get_input_embeddings()[
+                                i - 1
+                            ](codec_ids[:, :, i])
                         )
-                        codec_i_embedding = codec_i_embedding * codec_mask.unsqueeze(-1)
+                        codec_i_embedding = (
+                            codec_i_embedding * codec_mask.unsqueeze(-1)
+                        )
                         input_embeddings = input_embeddings + codec_i_embedding
 
                 outputs = model.talker(
@@ -420,9 +489,13 @@ def train():
             global_step += 1
             if step % 10 == 0:
                 loss_val = loss.item()
-                accelerator.print(f"Epoch {epoch} | Step {step} | Loss: {loss_val:.4f}")
+                accelerator.print(
+                    f"Epoch {epoch} | Step {step} | Loss: {loss_val:.4f}"
+                )
                 if accelerator.is_main_process:
-                    loss_history.append({"global_step": global_step, "loss": loss_val})
+                    loss_history.append(
+                        {"global_step": global_step, "loss": loss_val}
+                    )
 
     if accelerator.is_main_process:
         shutil.copytree(MODEL_PATH, checkpoint_dir, dirs_exist_ok=True)
@@ -439,15 +512,23 @@ def train():
             json.dump(config_dict, f, indent=2, ensure_ascii=False)
 
         unwrapped_model = accelerator.unwrap_model(model)
-        state_dict = {k: v.detach().to("cpu") for k, v in unwrapped_model.state_dict().items()}
+        state_dict = {
+            k: v.detach().to("cpu")
+            for k, v in unwrapped_model.state_dict().items()
+        }
         for k in [k for k in state_dict if k.startswith("speaker_encoder")]:
             del state_dict[k]
 
         weight = state_dict["talker.model.codec_embedding.weight"]
         state_dict["talker.model.codec_embedding.weight"][3000] = (
-            target_speaker_embedding[0].detach().to(weight.device).to(weight.dtype)
+            target_speaker_embedding[0]
+            .detach()
+            .to(weight.device)
+            .to(weight.dtype)
         )
-        save_file(state_dict, os.path.join(checkpoint_dir, "model.safetensors"))
+        save_file(
+            state_dict, os.path.join(checkpoint_dir, "model.safetensors")
+        )
         print(f"Saved checkpoint → {checkpoint_dir}")
 
         save_loss_plot(loss_history, experiment_dir, args.lr)
