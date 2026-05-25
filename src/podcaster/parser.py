@@ -16,6 +16,8 @@ from tenacity import (
 )
 
 from podcaster.config import (
+    ENV_OPENAI_API_KEY,
+    OPENROUTER_BASE_URL,
     PODCAST_AUTHOR,
     PODCAST_CATEGORIES,
     PODCAST_DESCRIPTION,
@@ -176,8 +178,8 @@ Content:\n{html_string}
     """.strip()
 
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=os.environ["OPENAI_API_KEY"],
+        base_url=OPENROUTER_BASE_URL,
+        api_key=os.environ[ENV_OPENAI_API_KEY],
     )
 
     completion = client.chat.completions.create(
@@ -244,19 +246,19 @@ def generate_podcast_feed_from(
     fg = FeedGenerator()
     fg.load_extension("podcast")
 
-    fg.podcast.itunes_category(PODCAST_CATEGORIES)
+    fg.podcast.itunes_category(PODCAST_CATEGORIES)  # ty: ignore[unresolved-attribute]
     fg.title(PODCAST_NAME)
     fg.description(PODCAST_DESCRIPTION)
     fg.link(href=PODCAST_WEBSITE)
     fg.logo(PODCAST_IMAGE)
     fg.author(PODCAST_AUTHOR)
-    fg.podcast.itunes_author(PODCAST_AUTHOR.get("name"))
-    fg.podcast.itunes_explicit("no")
-    fg.podcast.itunes_image(PODCAST_IMAGE)
-    fg.podcast.itunes_owner(
+    fg.podcast.itunes_author(PODCAST_AUTHOR.get("name"))  # ty: ignore[unresolved-attribute]
+    fg.podcast.itunes_explicit("no")  # ty: ignore[unresolved-attribute]
+    fg.podcast.itunes_image(PODCAST_IMAGE)  # ty: ignore[unresolved-attribute]
+    fg.podcast.itunes_owner(  # ty: ignore[unresolved-attribute]
         name=PODCAST_AUTHOR.get("name"), email=PODCAST_AUTHOR.get("email")
     )
-    fg.podcast.itunes_summary(PODCAST_DESCRIPTION)
+    fg.podcast.itunes_summary(PODCAST_DESCRIPTION)  # ty: ignore[unresolved-attribute]
 
     for article in articles:
         fe = fg.add_entry()

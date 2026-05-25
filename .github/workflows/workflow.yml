@@ -21,12 +21,10 @@ jobs:
           version: "latest"
       - name: Set up Python
         run: uv python install 3.11
-      - name: Install dependencies
-        run: uv sync
       - name: Install ffmpeg
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - name: Check formatting
-        run: make check
+      - name: Prepare project
+        run: make prep
       - name: Download NLTK data
         run: uv run python -c "import nltk; nltk.download('punkt_tab')"
       - name: Run script
