@@ -8,7 +8,7 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION}-python${PYTHON_VERSION}-${BASE_LAYER}
 WORKDIR /app
 
 RUN apt-get update \
-    && apt-get install -y cron \
+    && apt-get install -y cron ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml uv.lock README.md ./
@@ -19,7 +19,8 @@ RUN uv sync --locked --no-dev \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
+ADD docker/entrypoint.sh /entrypoint.sh
 ADD docker/crontab /etc/cron.d/podcaster-cron
-RUN chmod 0644 /etc/cron.d/podcaster-cron
+RUN chmod 0644 /etc/cron.d/podcaster-cron && chmod +x /entrypoint.sh
 
-CMD cron && tail -f /var/log/cron.log
+ENTRYPOINT ["/entrypoint.sh"]
