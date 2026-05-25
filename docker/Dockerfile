@@ -20,7 +20,8 @@ RUN uv sync --locked --no-dev \
 ENV PATH="/app/.venv/bin:$PATH"
 
 ADD docker/entrypoint.sh /entrypoint.sh
+ADD docker/run-cron.sh /usr/local/bin/run-podcaster-cron
 ADD docker/crontab /etc/cron.d/podcaster-cron
-RUN chmod 0644 /etc/cron.d/podcaster-cron && chmod +x /entrypoint.sh
+RUN chmod 0644 /etc/cron.d/podcaster-cron && chmod +x /entrypoint.sh /usr/local/bin/run-podcaster-cron
 
 ENTRYPOINT ["/entrypoint.sh"]
