@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import requests
@@ -5,14 +6,12 @@ from loguru import logger
 
 from podcaster.config import (
     BUCKET_NAME,
+    ENV_REBUILD_TRIGGER_URL,
     FEED_URL,
     LLM_PREPROCESSING_MODEL,
     TRANSCRIBE_LAST_N_ARTICLES,
 )
-from podcaster.parser import (
-    generate_podcast_feed_from,
-    get_articles,
-)
+from podcaster.parser import generate_podcast_feed_from, get_articles
 from podcaster.storage import S3BucketManager
 from podcaster.transcription import transcribe_to_file
 
@@ -61,8 +60,19 @@ class Podcaster:
 
         self.trigger_website_rebuild = True
 
+    def dry_run(self):
+        articles = get_articles(self.feed_url)
+        if not articles:
+            raise ValueError("No articles found")
+
+        article = articles[-1]
+        logger.info(f"Dry run: transcribing latest article '{article.title}'")
+        article.preprocess_with_llm(LLM_PREPROCESSING_MODEL)
+        wav_file_name = transcribe_to_file(article=article, as_mp3=False)
+        logger.info(f"Dry run audio saved to {wav_file_name}")
+
     def rebuild(self):
-        rebuild_trigger_url = os.getenv("REBUILD_TRIGGER_URL", None)
+        rebuild_trigger_url = os.getenv(ENV_REBUILD_TRIGGER_URL, None)
 
         if rebuild_trigger_url is None:
             logger.info("No rebuild trigger URL")
@@ -79,7 +89,19 @@ class Podcaster:
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Transcribe the latest article to a local WAV without publishing",
+    )
+    args = parser.parse_args()
+
     p = Podcaster(feed_url=FEED_URL, bucket_name=BUCKET_NAME)
+    if args.dry_run:
+        p.dry_run()
+        return
+
     p.scan()
     p.rebuild()
 

@@ -6,19 +6,20 @@ from loguru import logger
 from pydub import AudioSegment
 
 from podcaster.config import (
-    CHATTERBOX_CFG_WEIGHT,
-    CHATTERBOX_CROSSFADE_MS,
-    CHATTERBOX_EXAGGERATION,
-    CHATTERBOX_MAX_CHARS_PER_CHUNK,
-    CHATTERBOX_TEMPERATURE,
+    QWEN_TTS_BATCH_SIZE,
+    QWEN_TTS_CROSSFADE_MS,
+    QWEN_TTS_LANGUAGE,
+    QWEN_TTS_MAX_CHARS_PER_CHUNK,
+    QWEN_TTS_MAX_NEW_TOKENS,
+    QWEN_TTS_SPEAKER,
     RESULTS_DIR,
 )
-from podcaster.modal_functions import app, transcribe
+from podcaster.modal_functions import app, transcribe_chunks
 from podcaster.parser import ParsedArticle
 
 
 def split_text_into_chunks(
-    text: str, max_chars: int = CHATTERBOX_MAX_CHARS_PER_CHUNK
+    text: str, max_chars: int = QWEN_TTS_MAX_CHARS_PER_CHUNK
 ) -> list[str]:
     """Split text into sentence-based chunks of <= max_chars."""
     import nltk
@@ -48,7 +49,7 @@ def concatenate_wav_bytes(audio_bytes_list: list[bytes]) -> bytes:
     combined = AudioSegment.from_wav(io.BytesIO(audio_bytes_list[0]))
     for audio_bytes in audio_bytes_list[1:]:
         segment = AudioSegment.from_wav(io.BytesIO(audio_bytes))
-        combined = combined.append(segment, crossfade=CHATTERBOX_CROSSFADE_MS)
+        combined = combined.append(segment, crossfade=QWEN_TTS_CROSSFADE_MS)
 
     output = io.BytesIO()
     combined.export(output, format="wav")
@@ -58,19 +59,21 @@ def concatenate_wav_bytes(audio_bytes_list: list[bytes]) -> bytes:
 
 def text_to_bytes(text: str) -> bytes:
     chunks = split_text_into_chunks(
-        text, max_chars=CHATTERBOX_MAX_CHARS_PER_CHUNK
+        text, max_chars=QWEN_TTS_MAX_CHARS_PER_CHUNK
     )
     generation_kwargs = {
-        "exaggeration": CHATTERBOX_EXAGGERATION,
-        "cfg_weight": CHATTERBOX_CFG_WEIGHT,
-        "temperature": CHATTERBOX_TEMPERATURE,
+        "speaker": QWEN_TTS_SPEAKER,
+        "language": QWEN_TTS_LANGUAGE,
+        "max_new_tokens": QWEN_TTS_MAX_NEW_TOKENS,
+        "batch_size": QWEN_TTS_BATCH_SIZE,
     }
     print(f"Text split into {len(chunks)} chunks.")
     audio_bytes = None
     with modal.enable_output():
         with app.run():
-            audio_bytes = list(
-                transcribe.map(chunks, [generation_kwargs] * len(chunks))
+            audio_bytes = transcribe_chunks.remote(
+                chunks=chunks,
+                generation_kwargs=generation_kwargs,
             )
     if not audio_bytes:
         raise ValueError("No results returned from transcription.")
@@ -82,6 +85,7 @@ def text_to_bytes(text: str) -> bytes:
 def transcribe_to_file(
     article: ParsedArticle,
     target_dir: str = RESULTS_DIR,
+    as_mp3: bool = True,
 ) -> str:
     assert isinstance(article, ParsedArticle), "Input is not a ParsedArticle."
     if not article.text_for_tts:
@@ -93,6 +97,10 @@ def transcribe_to_file(
     wav_file_name = f"{target_dir}{article.id}.wav"
     with open(wav_file_name, "wb") as f:
         f.write(article_bytes)
+
+    if not as_mp3:
+        logger.info(f"Transcription saved to {wav_file_name}")
+        return wav_file_name
 
     mp3_file_name = convert_to_mp3(wav_file_name)
     logger.info(f"Transcription saved to {mp3_file_name}")
