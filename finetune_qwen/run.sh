@@ -21,7 +21,7 @@ GRAD_ACCUM=4
 INIT_MODEL_PATH="Qwen/Qwen3-TTS-12Hz-0.6B-Base"
 
 : "${HF_TOKEN:?Set HF_TOKEN to sync the dataset from Hugging Face}"
-uvx hf sync hf://buckets/duarteocarmo/voice ./dataset
+uvx --from "huggingface-hub[cli]" hf sync --ignore-times hf://buckets/duarteocarmo/voice ./dataset
 
 PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True uv run python train.py \
     --experiment_name "$EXPERIMENT_NAME" \
