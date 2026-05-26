@@ -7,6 +7,8 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION}-python${PYTHON_VERSION}-${BASE_LAYER}
 
 WORKDIR /app
 
+ENV NLTK_DATA="/usr/local/share/nltk_data"
+
 RUN apt-get update \
     && apt-get install -y cron ffmpeg \
     && rm -rf /var/lib/apt/lists/*
@@ -14,6 +16,7 @@ RUN apt-get update \
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 RUN uv sync --locked --no-dev \
+    && uv run python -m nltk.downloader -d "$NLTK_DATA" punkt punkt_tab \
     && mkdir -p transcripts \
     && touch /var/log/cron.log
 

@@ -25,7 +25,15 @@ def split_text_into_chunks(
     import nltk
     from nltk.tokenize import sent_tokenize
 
-    nltk.download("punkt", quiet=True)
+    for package_name, resource_path in (
+        ("punkt", "tokenizers/punkt"),
+        ("punkt_tab", "tokenizers/punkt_tab/english"),
+    ):
+        try:
+            nltk.data.find(resource_path)
+        except LookupError:
+            nltk.download(package_name, quiet=True)
+
     text = re.sub(r"\s+", " ", text.strip())
     sentences = sent_tokenize(text)
     chunks, current = [], ""
